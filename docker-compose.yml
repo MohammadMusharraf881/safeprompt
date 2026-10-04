@@ -1,0 +1,44 @@
+services:
+  safeprompt-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: safeprompt-api
+    restart: unless-stopped
+    environment:
+      - ENVIRONMENT=production
+      - DEBUG=false
+      - DECISION_WARN_THRESHOLD=0.30
+      - DECISION_BLOCK_THRESHOLD=0.70
+      - DATABASE_PATH=/app/data/safeprompt.db
+    volumes:
+      - safeprompt_data:/app/data
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - safeprompt_net
+
+  nginx:
+    image: nginx:alpine
+    container_name: safeprompt-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      safeprompt-api:
+        condition: service_healthy
+    networks:
+      - safeprompt_net
+
+networks:
+  safeprompt_net:
+    driver: bridge
+
+volumes:
+  safeprompt_data:

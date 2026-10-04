@@ -9,4 +9,13 @@ __pycache__/
 *.py[cod]
 
 # Docker
-.dockerignore
+# (.dockerignore should be committed, not ignored)
+
+# Test & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local database
+*.db
+*.sqlite3
